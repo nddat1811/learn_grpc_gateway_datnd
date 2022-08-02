@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package demo;
+
+option go_package="demo_grpc_gateway/demopb";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    version: "1.0";
+  };
+  external_docs: {
+    url: "https://github.com/johanbrandhorst/grpc-gateway-boilerplate";
+    description: "gRPC-gateway boilerplate repository";
+  }
+  schemes: HTTPS;
+};
+
+
+message StringMessage {
+    string msg = 1;
+}
+
+service DemoGateway {
+    rpc Echo(StringMessage) returns (StringMessage){
+        option (google.api.http) = {
+            post: "/demo/echo"
+            body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            summary: "demo"
+            description: "Demo post."
+            tags: "Users"
+        };
+    }
+}
