@@ -2,7 +2,7 @@
 // source: demo/demo.proto
 
 /*
-Package demopb is a reverse proxy.
+Package demo is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */

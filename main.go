@@ -17,6 +17,7 @@ type server struct{
 
 func (server) Echo(ctx context.Context, msg *demo.StringMessage) (*demo.StringMessage, error) {
 	log.Printf("receive message %s\n", msg.GetMsg())
+	//msg = msg.GetMsg() + "soss"
 	return msg, nil
 }
 
