@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type server struct{
+type server struct {
 	demo.UnimplementedDemoGatewayServer
 }
 
@@ -21,8 +21,22 @@ func (server) Echo(ctx context.Context, msg *demo.StringMessage) (*demo.StringMe
 	return msg, nil
 }
 
+func (server) Register(ctx context.Context, in *demo.RegisterRequest) (*demo.RegisterResponse, error) {
+	response := &demo.RegisterResponse{
+		Msg: "sspss",
+	}
+	return response, nil
+}
+
+func (server) Login(ctx context.Context, in *demo.LoginRequest) (*demo.LoginResponse, error) {
+	response := &demo.LoginResponse{
+		Msg: "login ne",
+	}
+	return response, nil
+}
+
 func main() {
-	lis, err := net.Listen("tcp", "0.0.0.0:50080")
+	lis, err := net.Listen("tcp", "0.0.0.0:4002")
 	if err != nil {
 		log.Fatalf("err while create listen %v", err)
 	}

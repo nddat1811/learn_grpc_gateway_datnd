@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  proxy:
+    image: proxy
+    build:
+     context: .
+     dockerfile: Dockerfile_proxy
+    volumes:
+     - ./src:/app/src
+     - /app/src/proxy 
+    ports:
+     - 8083:8083
+    depends_on:
+     - server
+  server:
+    image: server
+    build:
+     context: .
+     dockerfile: Dockerfile_server
+    volumes:
+     - ./src:/app/src
+    ports:
+      - 4002:4002
+   

@@ -18,17 +18,41 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 message StringMessage {
     string msg = 1;
 }
+message RegisterRequest {
+    string username = 1;
+    string password = 2;
+}
 
+message RegisterResponse {
+    string msg = 1;
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string msg = 1;
+}
 service DemoGateway {
     rpc Echo(StringMessage) returns (StringMessage){
         option (google.api.http) = {
             post: "/demo/echo"
             body: "*"
         };
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-            summary: "demo"
-            description: "Demo post."
-            tags: "Users"
+    };
+    rpc Register(RegisterRequest) returns (RegisterResponse) {
+        option (google.api.http) = {
+            post: "/register"
+            body: "*"
+        };
+    };
+    rpc Login(LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+            post: "/login"
+            body: "*"
         };
     }
+
 }

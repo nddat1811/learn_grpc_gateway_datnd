@@ -18,7 +18,7 @@ import (
 var (
 	// command-line options:
 	// gRPC server endpoint
-	grpcServerEndpoint = flag.String("grpc-server-endpoint", "localhost:50080", "gRPC server endpoint")
+	grpcServerEndpoint = flag.String("grpc-server-endpoint", "127.0.0.1:4002", "gRPC server endpoint")
 )
 
 func run() error {
@@ -44,7 +44,21 @@ func main() {
 	defer glog.Flush()
 
 	log.Println("proxy is running...")
-	if err := run(); err != nil {
+
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Register gRPC server endpoint
+	// Note: Make sure the gRPC server is running properly and accessible
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err := gw.RegisterDemoGatewayHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
+	if err != nil {
 		glog.Fatal(err)
 	}
+
+	// Start HTTP server (and proxy calls to gRPC server endpoint)
+	http.ListenAndServe(":8083", mux)
+
 }
