@@ -5,10 +5,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"regexp"
 
 	demo "gateway/demo"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -40,24 +42,30 @@ func (server) Login(ctx context.Context, in *demo.LoginRequest) (*demo.LoginResp
 	}
 	return response, nil
 }
+//https://fale.io/blog/2021/07/28/cors-headers-with-grpc-gateway
+func allowedOrigin(origin string) bool {
+	if viper.GetString("cors") == "*" {
+		return true
+	}
+	if matched, _ := regexp.MatchString(viper.GetString("cors"), origin); matched {
+		return true
+	}
+	return false
+}
 
-// func main() {
-// 	lis, err := net.Listen("tcp", "0.0.0.0:4002")
-// 	if err != nil {
-// 		log.Fatalf("err while create listen %v", err)
-// 	}
-
-// 	s := grpc.NewServer()
-
-// 	demo.RegisterDemoGatewayServer(s, &server{})
-
-// 	fmt.Println("demo gateway service is running...")
-// 	err = s.Serve(lis)
-
-// 	if err != nil {
-// 		log.Fatalf("err while serve %v", err)
-// 	}
-// }
+func cors(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if allowedOrigin(r.Header.Get("Origin")) {
+			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, ResponseType")
+		}
+		if r.Method == "OPTIONS" {
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
 
 //https://grpc-ecosystem.github.io/grpc-gateway/docs/tutorials/adding_annotations/
 func main() {
@@ -90,6 +98,7 @@ func main() {
 	}
 
 	gwmux := runtime.NewServeMux()
+
 	// Register Greeter
 	err = demo.RegisterDemoGatewayHandler(context.Background(), gwmux, conn)
 	if err != nil {
@@ -98,10 +107,29 @@ func main() {
 
 	gwServer := &http.Server{
 		Addr:    ":8090",
-		Handler: gwmux,
+		Handler: cors(gwmux),
 	}
 
 	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8090")
 	log.Fatalln(gwServer.ListenAndServe())
 
 }
+
+
+// func main() {
+// 	lis, err := net.Listen("tcp", "0.0.0.0:4002")
+// 	if err != nil {
+// 		log.Fatalf("err while create listen %v", err)
+// 	}
+
+// 	s := grpc.NewServer()
+
+// 	demo.RegisterDemoGatewayServer(s, &server{})
+
+// 	fmt.Println("demo gateway service is running...")
+// 	err = s.Serve(lis)
+
+// 	if err != nil {
+// 		log.Fatalf("err while serve %v", err)
+// 	}
+// }
