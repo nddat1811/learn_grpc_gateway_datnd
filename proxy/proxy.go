@@ -18,7 +18,7 @@ import (
 var (
 	// command-line options:
 	// gRPC server endpoint
-	grpcServerEndpoint = flag.String("grpc-server-endpoint", "127.0.0.1:4002", "gRPC server endpoint")
+	grpcServerEndpoint = flag.String("grpc-server-endpoint", "localhost:4002", "gRPC server endpoint")
 )
 
 func run() error {
@@ -29,7 +29,7 @@ func run() error {
 	// Register gRPC server endpoint
 	// Note: Make sure the gRPC server is running properly and accessible
 	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+	opts := []grpc.DialOption{}
 	err := gw.RegisterDemoGatewayHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func main() {
 	// Register gRPC server endpoint
 	// Note: Make sure the gRPC server is running properly and accessible
 	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+	opts := []grpc.DialOption{}
 	err := gw.RegisterDemoGatewayHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
 	if err != nil {
 		glog.Fatal(err)
