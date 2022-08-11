@@ -26,11 +26,10 @@ services:
 
   server:
     image: server
-    build:
-     context: .
-     dockerfile: Dockerfile_server
     volumes:
-     - ./src:/app/src
+     - .:/go/src/mvc_golang
     ports:
       - 8090:8090
+    depends_on:
+      - db
    

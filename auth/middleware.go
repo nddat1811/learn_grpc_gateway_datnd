@@ -22,7 +22,7 @@ type AuthMiddlewareConfig struct {
 	svc *demo.UnimplementedDemoGatewayServer
 }
 
-func InitAuthMiddleware(svc *demo.UnimplementedDemoGatewayServer) AuthMiddlewareConfig {
+func(m *AuthMiddlewareConfig) InitAuthMiddleware(svc *demo.UnimplementedDemoGatewayServer) AuthMiddlewareConfig {
 	return AuthMiddlewareConfig{svc}
 }
 

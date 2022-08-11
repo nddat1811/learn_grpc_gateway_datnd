@@ -9,11 +9,13 @@ import (
 	"regexp"
 	"time"
 
+	"gateway/config"
 	demo "gateway/demo"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -103,13 +105,13 @@ func cors(h http.Handler) http.Handler {
 //https://grpc-ecosystem.github.io/grpc-gateway/docs/tutorials/adding_annotations/
 func main() {
 
-	// err := gotenv.Load(".env")
-	// if err != nil {
-	// 	log.Fatalf("Error loading .env file")
-	// }
+	err := gotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 
-	// connDB := config.InitMysql()
-	// defer config.CloseConnectDB(connDB)
+	connDB := config.InitMysql()
+	defer config.CloseConnectDB(connDB)
 
 	// GRPC Server
 	lis, err := net.Listen("tcp", ":8089")
