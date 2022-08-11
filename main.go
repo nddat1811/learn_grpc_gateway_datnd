@@ -5,43 +5,76 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"regexp"
+	"time"
 
 	demo "gateway/demo"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type server struct {
 	demo.UnimplementedDemoGatewayServer
 }
 
-func (server) Echo(ctx context.Context, msg *demo.StringMessage) (*demo.StringMessage, error) {
-	log.Printf("receive message %s\n", msg.GetMsg())
-	//msg = msg.GetMsg() + "soss"
-	return msg, nil
-}
+var jwtKey = os.Getenv("API_KEY")
+const (
+	expRefreshToken = 24
+	expToken        = 15
+	company         = "Hybrid Technologies Viet Nam"
+	hostMail        = "humghuy201280@gmail.com"
+	subjectMail     = "Email reset password"
+	textContent     = "Struction to reset your password:"
+)
+
 
 func (server) Register(ctx context.Context, in *demo.RegisterRequest) (*demo.RegisterResponse, error) {
 	log.Printf("registering %s\n", in.GetUsername())
 	log.Printf("registering %s\n", in.GetPassword())
+	username := in.GetUsername()
+	password := in.GetPassword()
+
+	if username == "" || password == "" {
+		return nil, status.Error(codes.DataLoss, "Lost input") //error grpc.Error(fmt.Sprint)
+	}
+	// token, err :=
 	response := &demo.RegisterResponse{
 		Msg: "sspss",
 	}
 	return response, nil
 }
 
-func (server) Login(ctx context.Context, in *demo.LoginRequest) (*demo.LoginResponse, error) {
-	log.Printf("login: %s\n", in.GetUsername())
-	log.Printf("login: %s\n", in.GetPassword())
+func (m* server) Login(ctx context.Context, in *demo.LoginRequest) (*demo.LoginResponse, error) {
+	username := in.GetUsername()
+	password := in.GetPassword()
+
+	if username == "" || password == "" {
+		return nil, status.Error(codes.DataLoss, "Lost input") //error grpc.Error(fmt.Sprint)
+	}
+
+	tokenJwt := jwt.New(jwt.SigningMethodHS256)
+	claims := tokenJwt.Claims.(jwt.MapClaims)
+	claims["id"] = "1111"
+	claims["exp"] = time.Now().Add(time.Hour * expToken).Unix()
+	token, err := tokenJwt.SignedString([]byte(jwtKey))
+	if err != nil {
+		return nil, err
+	}
+
+
 	response := &demo.LoginResponse{
-		Msg: "login ne",
+		Msg: token,
 	}
 	return response, nil
 }
+
 //https://fale.io/blog/2021/07/28/cors-headers-with-grpc-gateway
 func allowedOrigin(origin string) bool {
 	if viper.GetString("cors") == "*" {
@@ -69,8 +102,17 @@ func cors(h http.Handler) http.Handler {
 
 //https://grpc-ecosystem.github.io/grpc-gateway/docs/tutorials/adding_annotations/
 func main() {
+
+	// err := gotenv.Load(".env")
+	// if err != nil {
+	// 	log.Fatalf("Error loading .env file")
+	// }
+
+	// connDB := config.InitMysql()
+	// defer config.CloseConnectDB(connDB)
+
 	// GRPC Server
-	lis, err := net.Listen("tcp", ":8080")
+	lis, err := net.Listen("tcp", ":8089")
 	if err != nil {
 		log.Fatalln("Failed to listen:", err)
 	}
@@ -80,7 +122,7 @@ func main() {
 	// Attach the Greeter service to the server
 	demo.RegisterDemoGatewayServer(s, &server{})
 	// Serve gRPC server
-	log.Println("Serving gRPC on 0.0.0.0:8080")
+	log.Println("Serving gRPC on 0.0.0.0:8089")
 	go func() {
 		log.Fatalln(s.Serve(lis))
 	}()
@@ -89,7 +131,7 @@ func main() {
 	// This is where the gRPC-Gateway proxies the requests
 	conn, err := grpc.DialContext(
 		context.Background(),
-		"0.0.0.0:8080",
+		"0.0.0.0:8089",
 		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -114,7 +156,6 @@ func main() {
 	log.Fatalln(gwServer.ListenAndServe())
 
 }
-
 
 // func main() {
 // 	lis, err := net.Listen("tcp", "0.0.0.0:4002")

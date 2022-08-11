@@ -1,18 +1,29 @@
 version: '3'
 
 services:
-  proxy:
-    image: proxy
-    build:
-     context: .
-     dockerfile: Dockerfile_proxy
+  db:
+    image: mysql:5.7.34
+    command: --init-file /var/lib/docker/volumes/db/init.sql --innodb-use-native-aio=0 --explicit_defaults_for_timestamp=false
     volumes:
-     - ./src:/app/src
-     - /app/src/proxy 
+      - ./db:/var/lib/docker/volumes/db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+      MYSQL_ROOT_HOST: '%'
     ports:
-     - 8083:8083
+      - 3306:3306
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
     depends_on:
-     - server
+      - db
+
   server:
     image: server
     build:
@@ -21,5 +32,5 @@ services:
     volumes:
      - ./src:/app/src
     ports:
-      - 4002:4002
+      - 8090:8090
    
